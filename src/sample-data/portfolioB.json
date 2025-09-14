@@ -1,0 +1,15 @@
+{
+  "portfolio": [
+    { "ticker": "PEP", "shares": 4 },
+    { "ticker": "T", "shares": 30 },
+    { "ticker": "DUK", "shares": 5 },
+    { "ticker": "MRK", "shares": 6 },
+    { "ticker": "MO", "shares": 10 },
+    { "ticker": "IBM", "shares": 4 },
+    { "ticker": "CVS", "shares": 7 },
+    { "ticker": "SO", "shares": 6 },
+    { "ticker": "MMM", "shares": 3 },
+    { "ticker": "WBA", "shares": 12 },
+    { "ticker": "CASH", "shares": 0 }
+  ]
+}

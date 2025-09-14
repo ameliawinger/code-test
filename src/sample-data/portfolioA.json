@@ -1,0 +1,14 @@
+{
+  "portfolio": [
+    { "ticker": "MSFT", "shares": 2 },
+    { "ticker": "JNJ", "shares": 5 },
+    { "ticker": "PG", "shares": 6 },
+    { "ticker": "JPM", "shares": 5 },
+    { "ticker": "KO", "shares": 12 },
+    { "ticker": "NVDA", "shares": 4 },
+    { "ticker": "CVX", "shares": 5 },
+    { "ticker": "V", "shares": 3 },
+    { "ticker": "NEE", "shares": 1 },
+    { "ticker": "WMT", "shares": 7 }
+  ]
+}

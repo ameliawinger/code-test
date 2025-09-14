@@ -1,7 +1,19 @@
-import logo from './logo.svg';
-import './App.css';
+import logo from "./logo.svg";
+import "./App.css";
+import React, { useEffect, useRef, useState, Fragment } from "react";
+import { BarChart } from "@visa/charts-react";
+import Treemap from "./components/treemap/treemap";
+import TreemapGraphic from "./components/treemap/treemapcontainer";
 
 function App() {
+  const [isClient, setIsClient] = useState();
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && typeof document !== "undefined") {
+      setIsClient(true);
+    }
+  }, []);
+
   return (
     <div className="App">
       <header className="App-header">
@@ -18,6 +30,27 @@ function App() {
           Learn React
         </a>
       </header>
+      <div style={{ position: "relative" }}>
+        <div>
+          <TreemapGraphic portfolio={"portfolioA"} />
+        </div>
+        <BarChart
+          mainTitle="BarChart"
+          subTitle="Vertical (default) bar chart example"
+          data={[
+            { month: "January", value: 10 },
+            { month: "February", value: 15 },
+            { month: "March", value: 20 },
+            { month: "April", value: 25 },
+            { month: "May", value: 30 },
+            { month: "June", value: 35 },
+          ]}
+          ordinalAccessor="month"
+          valueAccessor="value"
+          height={400}
+          width={600}
+        />
+      </div>
     </div>
   );
 }
