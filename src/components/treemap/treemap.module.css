@@ -1,0 +1,24 @@
+.svg {
+    width: 100%;
+    overflow:visible;
+    margin:auto;
+
+}
+
+.slice {
+    cursor: pointer;
+    stroke:#d3d3d3;
+    stroke-width:2px;
+    opacity:.85;
+
+    &.highlight {
+        opacity: 1;
+        stroke:black;
+    }
+}
+
+.hide {
+    opacity:0;
+}
+
+

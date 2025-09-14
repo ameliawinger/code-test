@@ -1,18 +1,30 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import seedrandom from "seedrandom";
 import * as d3 from "d3";
 import * as d3Voronoi from "d3-voronoi-treemap";
+import styles from './treemap.module.css'
 //import * as ChartStyles from '../../styles/project-modules/voronoi.module.less'
 //import Tooltip from './voronoiTooltip'
 //import Legend from './legend'
 
+
+// helper function to raise slices on mouseenter
 d3.selection.prototype.moveToFront = function () {
   // d3 function that moves a d3 object to the front
   return this.each(function () {
     this.parentNode.appendChild(this);
   });
-}; // end moveToFront function
+};
+d3.selection.prototype.moveToBack = function () {
+  return this.each(function () {
+    const firstSibling = this.parentNode.firstChild;
+    if (firstSibling) {
+      this.parentNode.insertBefore(this, firstSibling);
+    }
+  });
+};
 
+// helper function for formatting currency
 const formatValue = (value) => {
   if (value === 0) {
     return "$0";
@@ -21,8 +33,8 @@ const formatValue = (value) => {
   }
 };
 
-const Treemap = ({ h_max }) => {
-  const [tooltipData, setTooltipData] = useState(null);
+const Treemap = ({ h_max, hierarchy }) => {
+  //const [tooltipData, setTooltipData] = useState(null);
 
   // margin arond chart
   const margin = {
@@ -33,24 +45,47 @@ const Treemap = ({ h_max }) => {
   };
   const svgRef = useRef(null);
 
+  const colors = useMemo(() => {
+  if (!hierarchy) return {};
+
+  const leafNodes = hierarchy.leaves?.() || [];
+  const uniqueSectors = [...new Set(leafNodes.map((d) => d.data.sector))];
+
+  const minColor = "#CFE0EF"; // light blue (min)
+  const maxColor = "#003166"; // dark teal (max)
+
+  const interpolator = d3.interpolateLab(minColor, maxColor);
+  const n = uniqueSectors.length;
+
+  return Object.fromEntries(
+    uniqueSectors.map((sector, i) => [
+      sector,
+      { color50: interpolator(i / (n - 1)) }
+    ])
+  );
+}, [hierarchy]);
+
   // function that draws the inside of the SVG
   function drawChart() {
-    //if (!hierarchy) return;
+    if (!hierarchy) return;
 
     /////// define variables up here
     const svg = d3.select(svgRef.current); // svg
 
+
+
     svg.selectAll("*").remove(); // reset on redraw
 
     // widths
-    const w_chart = svgRef.current.clientWidth; // width of the svg
+    //const w_chart = svgRef.current.clientWidth; // width of the svg
+    const w_chart = 1000
     const w_inner_chart = w_chart - margin.left - margin.right;
     const w_pie = Math.min(w_inner_chart, h_max); // inside width of the chart; maximum width that an element in the chart can have
 
     let mobile = w_chart < 400;
 
     // heights
-    /* svgRef.current.setAttribute('height', margin.top + w_pie + margin.bottom) // set height of svg
+    svgRef.current.setAttribute('height', `${margin.top + w_pie + margin.bottom}px`) // set height of svg
 
     // generate voronoi
     d3Voronoi.voronoiTreemap()
@@ -70,38 +105,40 @@ const Treemap = ({ h_max }) => {
     /////// start building elements
     // container
     const container = svg.append('g')
-      .attr('class', 'container')
+      .attr('class', styles.container)
       .attr('transform', `translate(${margin.left + (w_inner_chart - w_pie) / 2}, ${margin.top})`)
 
     // create each slice
-    container.selectAll('slice')
+    container.selectAll(styles.slice)
       .data(allNodes)
       .enter()
       .append('path')
-      .attr('class', d => `slice slice-${d.data.id}`)
+      .attr('class', d => `${styles.slice} slice-${d.data.id}`)
       .attr('d', d => "M" + d.polygon.join("L") + "Z")
-      .style('stroke-width', d => d.depth === 1 ? '3px' : '1px')
+      .style('stroke-width', d => d.depth === 1 ? '4px' : '1px')
+      .style('stroke', d => d.depth !== 2 ? 'white' : '#d3d3d3')
       .style('fill', d => {
         if (d.depth === 2) {
-          return colors[d.data.category].color50
+          const sector = d.data.sector;
+          const colorObj = colors[sector];
 
+          if (!colorObj) {
+            console.warn("Missing color for sector:", sector);
+            return "#ccc"; // fallback
+          }
+
+          return colorObj.color50;
         } else {
-          return 'transparent'
+          return "transparent";
         }
       })
       .attr('pointer-events', d => d.depth === 2 ? 'all' : 'none')
 
-
-
-
-
-
-
-    const textGroups = container.selectAll('.textGroup')
+    const textGroups = container.selectAll(styles.textGroup)
       .data(allNodes.filter(k => k.depth === 2))
       .enter()
       .append('g')
-      .attr('class', d => `textGroup textGroup-${d.data.id}`)
+      .attr('class', d => `${styles.textGroup} ${styles.textGroup}-${d.data.id} ${styles.hide}`)
       .attr('pointer-events', 'none')
       .attr('transform', d => {
         let xVal = d.polygon.site.x;
@@ -112,52 +149,33 @@ const Treemap = ({ h_max }) => {
 
     // Append the text
     textGroups.append('text')
-      .attr('class', 'deptLabel')
+      .attr('class', styles.stockName)
       .attr('x', 0)
       .attr('y', 0)
       .attr('font-weight', 'bold')
-      .style('font-size', mobile ? 11: 14)
+      .style('font-size', 14)
       .attr('pointer-events', 'none')
-      .attr('opacity', d => {
-        let max1 = 270000000;
-        let max2 = 270000000;
-        return ((w_pie === h_max && d.data[fiscal_year] > max1) || (w_pie < h_max && d.data[fiscal_year] > max2)) ? 1 : 0;
-      })
       .style('text-anchor', d => {
         if (d.polygon.site.x + 50 >= w_inner_chart) return 'end';
         if (d.polygon.site.x - 45 < 0) return 'start';
         return 'middle';
       })
       .each(function (d) {
-        const lines = d.data.name_short.split('\\n');
         d3.select(this)
-          .selectAll('tspan')
-          .data(lines)
-          .enter()
           .append('tspan')
           .attr('x', 0)
-          .attr('dy', (d, i) => i === 0 ? 0 : '1.1em')
-          .text(line => line);
+          .attr('dy', 0)
+          .text(d => d.data.Name);
       });
-
 
     textGroups
       .append('text')
-      .attr('class', 'budgetLabel')
+      .attr('class', styles.sectorLabel)
       .attr('x', 0)
-      .attr('y', d => d.data.name_short.includes('\\n') ? 35 : 15)
-      .text(d => formatValue(parseInt(d.data[fiscal_year])))
+      .attr('y', 15)
+      .text(d => d.data.sector)
       .attr('pointer-events', 'none')
-      .style('font-size', mobile ? 11: 14)
-      .attr('opacity', d => {
-        let max1 = 270000000
-        let max2 = 270000000
-        if ((w_pie === h_max && d.data[fiscal_year] > max1) || (w_pie < h_max && d.data[fiscal_year] > max2)) {
-          return 1
-        } else {
-          return 0
-        }
-      })
+      .style('font-size', 12)
       .style('text-anchor', d => {
         if (d.polygon.site.x + 50 >= w_inner_chart) {
           return 'end'
@@ -168,146 +186,47 @@ const Treemap = ({ h_max }) => {
         }
       })
 
-    // Now add rect *after* text so we can size it using getBBox()
-    textGroups.each(function () {
-      const group = d3.select(this);
-
-      //console.log('group is ', group)
-      const text = group.selectAll('.deptLabel');
-      //console.log('text is ', text)
-      const bbox = text.node().getBBox();
-
-      // Append a rect behind the text
-      group.insert('rect', 'text')
-        .attr('x', bbox.x - 5)
-        .attr('y', bbox.y - 3)
-        .attr('width', bbox.width + 12)
-        .attr('height', bbox.height + 22)
-        .attr('fill', 'white')
-        .attr('class', d => `backgroundBox rect-${d.data.id}`)
-        .attr('opacity', 0)
-        
-
-    });
 
 
 
 
-
-
-
-    /////////////////////
-    /*  container.selectAll('textGroup')
-     .data(allNodes.filter(k => k.depth === 2))
-     .enter()
-     .append('g')
-     .attr('class', d=> `textGroup textGroup-${d.data.id}`)
-     .attr('transform', d => {
-       let xVal = d.polygon.site.x
-       if (xVal + 50 >= w_chart) { // too right
-         xVal = xVal + 3
-       } else if (xVal - 45 < 0) {
-         xVal = xVal -8
-       }
-       return `translate(${xVal}, ${d.polygon.site.y-5})`
-     })
- 
-     container.selectAll('.textGroup')
-     .append('text')
-     .attr('class', 'deptLabel')
-     .attr('x', 0)
-     .attr('y', 0)
-     .text(d => d.data.name_short) 
-     .attr('font-weight', 'bold')
- 
-     .attr('opacity', d => {
-       let max1 = 99000000
-       let max2 = 99000000
-       if ((w_pie === h_max && d.data[fiscal_year] > max1) || (w_pie < h_max && d.data[fiscal_year] > max2)) {
-         return 1
-       } else {
-         return 0
-       }
-     })
-     .style('text-anchor', d => {
-       if (d.polygon.site.x + 50 >= w_chart) {
-         return 'end'
-       } else if (d.polygon.site.x - 45 < 0) {
-         return 'start'
-       } else {
-         return 'middle'
-       }
-     })
- 
-      container.selectAll('.textGroup')
-     .append('text')
-     .attr('class', 'budgetLabel')
-     .attr('x', 0)
-     .attr('y', 15)
-     .text(d => formatValue(parseInt(d.data[fiscal_year])))
-     .attr('opacity', d => {
-       let max1 = 99000000
-       let max2 = 99000000
-       if ((w_pie === h_max && d.data[fiscal_year] > max1) || (w_pie < h_max && d.data[fiscal_year] > max2)) {
-         return 1
-       } else {
-         return 0
-       }
-     })
-     .style('text-anchor', d => {
-       if (d.polygon.site.x + 50 >= w_chart) {
-         return 'end'
-       } else if (d.polygon.site.x - 45 < 0) {
-         return 'start'
-       } else {
-         return 'middle'
-       }
-     }) 
-  */
-    /* container.selectAll('.slice')
+    container.selectAll(`.${styles.slice}`)
       .on('mouseenter', function () {
 
-        setTooltipData(d3.select(this).data()[0].data)
+        //setTooltipData(d3.select(this).data()[0].data)
 
-        const deptId = d3.select(this).data()[0].data.id
+        const sectorId = d3.select(this).data()[0].data.id
+        //console.log('sectorId is ', sectorId)
 
-        svg.selectAll('.textGroup').classed('hide', true)
+        //hide all labels
+        svg.selectAll(`.${styles.textGroup}`).classed(styles.hide, true)
 
-        svg.selectAll(`.textGroup-${deptId}`)
-          .classed('hide', false)
-          .classed('highlight', true)
-          .moveToFront()
+        // higlight the slice
+        d3.select(this).classed(styles.highlight, true).moveToFront()
 
-        d3.select(this).classed('highlight', true)
-
+        // show text group for highlighted slice
+        svg.selectAll(`.${styles.textGroup}-${sectorId}`)
+          .classed(styles.hide, false)
+          .classed(styles.highlight, true)
+          .moveToFront() 
       })
       .on('mouseleave', function () {
-        setTooltipData(null)
+        const sectorId = d3.select(this).data()[0].data.id
+        //setTooltipData(null)
 
-        svg.selectAll('.textGroup').classed('hide', false).classed('highlight', false)
+        d3.select(this).classed(styles.highlight, false).moveToBack()
 
-        d3.select(this).classed('highlight', false)
+        svg.selectAll(`.${styles.textGroup}-${sectorId}`)
+          .classed(styles.hide, true)
+          .classed(styles.highlight, false)
+
+        
       })
 
-  }*/
+
   }
 
   // use effect since the chart depends on the svg dimensions
-  /* useEffect(() => {
-    drawChart()
-    setTooltipData(null)
-
-    // resize
-    let resizedFn
-    window.addEventListener('resize', () => {
-      clearTimeout(resizedFn)
-      resizedFn = setTimeout(() => {
-        svgRef.current.innerHTML = '' // clear contents
-        drawChart() // rebuild
-        setTooltipData(null)
-      }, 200)
-    })
-  }, [hierarchy]) */
 
   useEffect(() => {
     drawChart();
@@ -324,7 +243,13 @@ const Treemap = ({ h_max }) => {
     });
   }, []);
 
-  return <div ref={svgRef}>Hi there idiots</div>;
+  return (<>
+    <svg className={styles.svg} ref={svgRef}>
+
+    </svg>
+    <div>Testing</div>
+  </>
+  )
 };
 
 export default Treemap;
