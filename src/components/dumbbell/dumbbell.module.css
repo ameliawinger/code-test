@@ -1,0 +1,20 @@
+.sliderWrapper {
+    width:100%;
+   
+    margin:auto;
+}
+
+.sliderContainer {
+    width:90%;
+    margin:auto;
+}
+
+text:has(tspan):not(:has(tspan:empty)) {
+  visibility: visible;
+}
+
+
+
+text:has(tspan):has(tspan:has("hide")) {
+  visibility: hidden !important;
+}

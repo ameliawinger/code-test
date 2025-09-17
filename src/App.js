@@ -2,8 +2,8 @@ import logo from "./logo.svg";
 import "./App.css";
 import React, { useEffect, useRef, useState, Fragment } from "react";
 import { BarChart } from "@visa/charts-react";
-import Treemap from "./components/treemap/treemap";
 import TreemapGraphic from "./components/treemap/treemapcontainer";
+import DumbbellGraphic from "./components/dumbbell/dumbbellcontainer";
 
 function App() {
   const [isClient, setIsClient] = useState();
@@ -33,6 +33,9 @@ function App() {
       <div style={{ position: "relative" }}>
         <div>
           <TreemapGraphic portfolio={"portfolioA"} />
+        </div>
+        <div>
+          <DumbbellGraphic portfolio={"portfolioC"} />
         </div>
         <BarChart
           mainTitle="BarChart"

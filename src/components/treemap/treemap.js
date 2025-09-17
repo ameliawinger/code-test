@@ -33,7 +33,7 @@ const formatValue = (value) => {
   }
 };
 
-const Treemap = ({ h_max, hierarchy }) => {
+const Treemap = ({ h_max, hierarchy, setTooltipData, colors }) => {
   //const [tooltipData, setTooltipData] = useState(null);
 
   // margin arond chart
@@ -45,7 +45,7 @@ const Treemap = ({ h_max, hierarchy }) => {
   };
   const svgRef = useRef(null);
 
-  const colors = useMemo(() => {
+  /* const colors = useMemo(() => {
   if (!hierarchy) return {};
 
   const leafNodes = hierarchy.leaves?.() || [];
@@ -63,7 +63,7 @@ const Treemap = ({ h_max, hierarchy }) => {
       { color50: interpolator(i / (n - 1)) }
     ])
   );
-}, [hierarchy]);
+}, [hierarchy]); */
 
   // function that draws the inside of the SVG
   function drawChart() {
@@ -77,8 +77,8 @@ const Treemap = ({ h_max, hierarchy }) => {
     svg.selectAll("*").remove(); // reset on redraw
 
     // widths
-    //const w_chart = svgRef.current.clientWidth; // width of the svg
-    const w_chart = 1000
+    const w_chart = svgRef.current.clientWidth; // width of the svg
+    //const w_chart = 1000
     const w_inner_chart = w_chart - margin.left - margin.right;
     const w_pie = Math.min(w_inner_chart, h_max); // inside width of the chart; maximum width that an element in the chart can have
 
@@ -160,6 +160,7 @@ const Treemap = ({ h_max, hierarchy }) => {
         if (d.polygon.site.x - 45 < 0) return 'start';
         return 'middle';
       })
+      .style('fill', d => colors?.[d.data.sector]?.textcolor || 'black')
       .each(function (d) {
         d3.select(this)
           .append('tspan')
@@ -185,6 +186,8 @@ const Treemap = ({ h_max, hierarchy }) => {
           return 'middle'
         }
       })
+      .style('fill', d => colors?.[d.data.sector]?.textcolor || 'black')
+
 
 
 
@@ -197,6 +200,8 @@ const Treemap = ({ h_max, hierarchy }) => {
 
         const sectorId = d3.select(this).data()[0].data.id
         //console.log('sectorId is ', sectorId)
+
+        setTooltipData(d3.select(this).data()[0].data)
 
         //hide all labels
         svg.selectAll(`.${styles.textGroup}`).classed(styles.hide, true)
@@ -213,6 +218,8 @@ const Treemap = ({ h_max, hierarchy }) => {
       .on('mouseleave', function () {
         const sectorId = d3.select(this).data()[0].data.id
         //setTooltipData(null)
+
+        setTooltipData(null)
 
         d3.select(this).classed(styles.highlight, false).moveToBack()
 
@@ -243,11 +250,10 @@ const Treemap = ({ h_max, hierarchy }) => {
     });
   }, []);
 
-  return (<>
+  return (
+  <>
     <svg className={styles.svg} ref={svgRef}>
-
     </svg>
-    <div>Testing</div>
   </>
   )
 };

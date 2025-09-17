@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import Treemap from "./treemap";
 import * as d3 from "d3";
 import sampleData from "../../sample-data/sample-sp.json";
 import portfolioA from "../../sample-data/portfolioA.json";
 import portfolioB from "../../sample-data/portfolioB.json"; // optional
+import TreemapTooltip from "./treemaptooltip";
+import styles from './treemap.module.css'
+
 
 const categoryColors = {
   "Technology": { color100: "#189196", color75: "#45A6AC", color50: "#edce87", color25: "#9ED1D8", color0: "#CAE6EE" }, // teal
@@ -19,12 +22,29 @@ const categoryColors = {
   "Basic Materials": { color100: "#676767", color75: "#909090", color50: "#d9d9d9", color25: "#E1E1E1", color0: "#E1E1E1" },  // gray
 }
 
+const formatDollar = (value) => {
+        const num = value;
+
+        if (isNaN(num)) return '';
+
+        return num.toLocaleString('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    };
+
+        const parseDate = d3.utcParse("%Y-%m-%d")
+        const formatDate = d3.utcFormat("%B %d, %Y");
+
 
 
 const TreemapGraphic = ({ portfolio }) => {
   const [filtered, setFiltered] = useState([]);
   const [date, setDate] = useState("2018-02-07");
   const [hierarchy, setHierarchy] = useState();
+  const [tooltipData, setTooltipData] = useState()
 
   // Load the selected portfolio JSON file
   useEffect(() => {
@@ -75,8 +95,6 @@ const TreemapGraphic = ({ portfolio }) => {
   useEffect(() => {
     if (filtered.length === 0) return;
 
-    console.log("filtered is", filtered);
-
     // Build a custom hierarchy structure
     const root = {
       name: "root",
@@ -108,18 +126,78 @@ const TreemapGraphic = ({ portfolio }) => {
 
     const hierarchyRoot = d3.hierarchy(root).sum((d) => d.value);
 
-    console.log("hierarchy is", hierarchyRoot);
+    //console.log("hierarchy is", hierarchyRoot);
     setHierarchy(hierarchyRoot);
   }, [filtered]); 
 
+  // Calculate total portfolio value
+  const totalValue = useMemo(() => {
+    if (!filtered || filtered.length === 0) return 0;
+
+    return filtered.reduce((acc, item) => acc + (item.value || 0), 0);
+  }, [filtered]);
+
+  ////////////////////////
+
+  const colors = useMemo(() => {
+  if (!hierarchy) return {};
+
+  const leafNodes = hierarchy.leaves?.() || [];
+  const uniqueSectors = [...new Set(leafNodes.map((d) => d.data.sector))];
+
+  const minColor = "#CFE0EF"; // light blue
+  const maxColor = "#003166"; // dark teal
+
+  const interpolator = d3.interpolateLab(minColor, maxColor);
+  const n = uniqueSectors.length;
+
+  return Object.fromEntries(
+    uniqueSectors.map((sector, i) => {
+      const color50 = interpolator(i / (n - 1));
+      const lightness = d3.lab(color50).l; // Lightness is between 0 and 100
+
+      const textcolor = lightness < 60 ? 'white' : 'black'; // tweak threshold if needed
+
+      return [
+        sector,
+        { color50, textcolor },
+      ];
+    })
+  );
+}, [hierarchy]);
+
+useEffect(() => {
+  console.log('colors are ', colors)
+}, [colors])
+  //////////////////////////
+
+
   return (
-    <div>
-      <h2>Filtered Treemap Data</h2>
-      {hierarchy ? (
-        <Treemap data={filtered} hierarchy={hierarchy} h_max={500} colors={categoryColors} />
-      ) : (
-        <p>Loading treemap...</p>
-      )}
+    <div style={{marginBottom:'6rem'}}>
+      <h2>Portfolio Composition</h2>
+
+      <div className={styles.graphicWrapper}>
+        <div className={styles.treemapContainer}>
+          {hierarchy ? (
+            <>
+            {filtered && (
+              <div>
+              <div><strong>Total Portfolio Value:</strong> {formatDollar(totalValue)}</div>
+              <div style={{fontSize:'12.5px', fontStyle:'italic'}}>As of market close on {formatDate(parseDate(date))}</div>
+              </div>
+            )}
+
+            <Treemap data={filtered} hierarchy={hierarchy} h_max={500} colors={colors} setTooltipData={setTooltipData} />
+            </>
+          ) : (
+            <p>Loading treemap...</p>
+          )}
+        </div>
+
+        <div className={styles.tooltipWrapper}>
+          {hierarchy &&<TreemapTooltip data={tooltipData} hierarchy={hierarchy} totalValue={totalValue} date={date} colors={colors} />}
+        </div>
+      </div>
     </div>
   );
 };
