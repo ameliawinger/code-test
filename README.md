@@ -1,5 +1,5 @@
 ## Prior to running project: 
-Please unzip sample-sp.json and add the file to this project's src > components > sample-data folder
+Please add the sample-sp.json file to this project's src > components > sample-data folder
 
 ## Instructions to run: 
 Navigate to the project directory in your terminal. Run `npm install` , then `npm start` to build.
