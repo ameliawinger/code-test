@@ -16,20 +16,10 @@ function App() {
 
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+      <header>
+        
       </header>
+      <h1>Amelia Winger - Data Visualization Engineer Coding Exercise</h1>
       <div style={{ position: "relative" }}>
         <div>
           <TreemapGraphic portfolio={"portfolioA"} />
@@ -37,22 +27,7 @@ function App() {
         <div>
           <DumbbellGraphic portfolio={"portfolioC"} />
         </div>
-        <BarChart
-          mainTitle="BarChart"
-          subTitle="Vertical (default) bar chart example"
-          data={[
-            { month: "January", value: 10 },
-            { month: "February", value: 15 },
-            { month: "March", value: 20 },
-            { month: "April", value: 25 },
-            { month: "May", value: 30 },
-            { month: "June", value: 35 },
-          ]}
-          ordinalAccessor="month"
-          valueAccessor="value"
-          height={400}
-          width={600}
-        />
+        
       </div>
     </div>
   );

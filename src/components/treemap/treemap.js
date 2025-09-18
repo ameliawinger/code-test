@@ -199,7 +199,6 @@ const Treemap = ({ h_max, hierarchy, setTooltipData, colors }) => {
         //setTooltipData(d3.select(this).data()[0].data)
 
         const sectorId = d3.select(this).data()[0].data.id
-        //console.log('sectorId is ', sectorId)
 
         setTooltipData(d3.select(this).data()[0].data)
 

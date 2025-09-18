@@ -126,7 +126,6 @@ const TreemapGraphic = ({ portfolio }) => {
 
     const hierarchyRoot = d3.hierarchy(root).sum((d) => d.value);
 
-    //console.log("hierarchy is", hierarchyRoot);
     setHierarchy(hierarchyRoot);
   }, [filtered]); 
 
@@ -166,14 +165,11 @@ const TreemapGraphic = ({ portfolio }) => {
   );
 }, [hierarchy]);
 
-useEffect(() => {
-  console.log('colors are ', colors)
-}, [colors])
   //////////////////////////
 
 
   return (
-    <div style={{marginBottom:'6rem'}}>
+    <div style={{marginBottom:'6rem', border:'1px solid black', width:'95%', margin:'1rem auto 6rem auto ', padding: '1rem'}}>
       <h2>Portfolio Composition</h2>
 
       <div className={styles.graphicWrapper}>

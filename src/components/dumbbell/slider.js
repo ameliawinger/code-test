@@ -1,5 +1,5 @@
 import React from "react";
-//import Styles from "./your-style.module.css"; // Optional, for styling
+import styles from "./dumbbell.module.css"; // Optional, for styling
 
 const Slider = ({ fullData, currentRange, setCurrentRange }) => {
   const allDates = fullData.map(d => d.date);
@@ -28,6 +28,7 @@ const Slider = ({ fullData, currentRange, setCurrentRange }) => {
         Start Date: {currentRange[0]}
         <input
           type="range"
+          className={styles.slider}
           min="0"
           max={uniqueSortedDates.length - 1}
           value={startIndex}

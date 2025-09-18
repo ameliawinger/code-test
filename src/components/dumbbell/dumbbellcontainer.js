@@ -7,9 +7,12 @@ import RangeSlider from "react-range-slider-input";
 import "react-range-slider-input/dist/style.css";
 import styles from './dumbbell.module.css'
 
+const parseDate = d3.utcParse("%Y-%m-%d")
+const formatDate = d3.utcFormat("%b. %d, %Y");
 
 const DumbbellGraphic = () => {
     const portfolio = portfolioA.portfolio;
+    const [fullData, setFullData] = useState([])
 
     // State: stores the two slider thumbs as indices into the date list
     const [rangeIdx, setRangeIdx] = useState([0, 0]);
@@ -108,39 +111,33 @@ const DumbbellGraphic = () => {
         const startDate = dates[startIdx];
         const endDate = dates[endIdx];
 
-        const { data, totalPortfolioReturn } = calculateContributionToReturn(
+        const { data: fullContributionData, totalPortfolioReturn } = calculateContributionToReturn(
             sampleData,
             portfolio,
             startDate,
             endDate
         );
 
-        const transformedData = data.flatMap(stock => {
-            const className =
-                stock.contributionPct > 0.10
-                    ? "High"
-                    : stock.contributionPct < -0.10
-                        ? "Low"
-                        : "Neutral";
+        setFullData(fullContributionData)
+
+        const transformedData = fullContributionData.flatMap(stock => {
 
             return [
                 {
                     ticker: stock.ticker,
-                    category: "Below Average",
+                    category: "Zero",
                     value: 0,
                     label: "hide",
                     offset: -2,
-                    ClassName: className,
-                    dataPointAccessibilityNote: `Ticker ${stock.ticker} has Below return of 0`
+                    dataPointAccessibilityNote: `This point represents the 0% benchmark`
                 },
                 {
                     ticker: stock.ticker,
-                    category: "Above Average",
+                    category: "CtR",
                     label: stock.contributionPct,
                     value: stock.contributionPct,
                     offset: 5,
-                    ClassName: className,
-                    dataPointAccessibilityNote: `Ticker ${stock.ticker} has Above return of ${stock.contributionPct}`
+                    dataPointAccessibilityNote: `Ticker ${stock.ticker} had a return of ${stock.contributionPct}%`
                 }
             ];
         });
@@ -150,31 +147,8 @@ const DumbbellGraphic = () => {
     }, [rangeIdx, dates, portfolio]);
 
     return (
-        <div>
-            <h2>Dumbbell Graphic</h2>
-
-            {dates.length > 0 && (
-                <div className={styles.sliderWrapper} style={{ margin: "20px 0" }}>
-                    <label>
-                        Showing data from <strong>{dates[rangeIdx[0]]}</strong> to <strong>{dates[rangeIdx[1]]}</strong>
-                    </label>
-
-                    <div className={styles.sliderContainer}>
-                        <RangeSlider
-                            id="date-range-slider"
-                            min={0}
-                            max={dates.length - 1}
-                            step={1}
-                            value={rangeIdx}
-                            onInput={newRangeIdx => setRangeIdx(newRangeIdx)}
-                        />
-                    </div>
-                </div>
-            )}
-
-            {totalReturn !== null && (
-                <p>Total Portfolio Return: {(totalReturn * 100).toFixed(2)}%</p>
-            )}
+        <div style={{width:'680px', margin:'auto auto 6rem auto', border:'1px solid black', padding:'0 30px 0 30px'}}>
+            <div>
 
             {contributionData.length > 0 && (
                 <Dumbbell
@@ -183,7 +157,33 @@ const DumbbellGraphic = () => {
                     seriesAccessor="category"
                     valueAccessor="value"
                     elementDescriptionAccessor="dataPointAccessibilityNote"
+                    dates={dates}
+                    rangeIdx={rangeIdx}
+                    totalReturn={totalReturn}
                 />
+            )}
+            </div>
+            {dates.length > 0 && (
+                <div className={styles.sliderWrapper} style={{ margin: "20px 0" }}>
+                    <div style={{display:'flex', flexDirection:'row', marginBottom:'1rem', fontSize:'13px'}}>
+                        <div style={{textAlign:'right'}}>{formatDate(parseDate(dates[rangeIdx[0]]))}</div>
+
+                    <div className={styles.sliderContainer}>
+                        <RangeSlider
+                            id="date-range-slider"
+                            className={styles.customSlider}
+                            min={0}
+                            max={dates.length - 1}
+                            step={1}
+                            value={rangeIdx}
+                            onInput={newRangeIdx => setRangeIdx(newRangeIdx)}
+                        />
+                    </div>
+                    <div>
+                        {formatDate(parseDate(dates[rangeIdx[1]]))}
+                    </div>
+                </div>
+                </div>
             )}
         </div>
     );

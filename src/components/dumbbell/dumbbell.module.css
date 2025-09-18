@@ -5,16 +5,15 @@
 }
 
 .sliderContainer {
-    width:90%;
+    width:70%;
     margin:auto;
 }
 
-text:has(tspan):not(:has(tspan:empty)) {
-  visibility: visible;
+.customAnnotation {
+  font-size:14px;
 }
 
+div.range-slider__range {
+  background:lime
 
-
-text:has(tspan):has(tspan:has("hide")) {
-  visibility: hidden !important;
 }
