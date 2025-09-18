@@ -151,7 +151,7 @@ const TreemapGraphic = ({ portfolio }) => {
   return (
     <div style={{ marginBottom: '6rem', border: '1px solid black', width: '95%', margin: '1rem auto 6rem auto ', padding: '1rem' }}>
       <h2>Portfolio Composition</h2>
-      <div style={{ margin: '0 auto 1rem auto', width: '90%' }}>Use the treemap below to explore the value of each holding in your portfolio, grouped by sector. Each shape represents a single holding, sized by its value as of market close. Hover over a holding for more details.</div>
+      <div style={{ margin: '0 auto 1rem auto', width: '90%' }}>Use the chart below to explore the value of each holding in your portfolio, grouped by sector. Each shape represents a single holding, sized by its value as of market close. Hover over a holding for more details.</div>
 
       <div className={styles.graphicWrapper}>
         <div className={styles.treemapContainer}>
