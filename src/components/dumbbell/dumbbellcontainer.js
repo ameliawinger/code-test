@@ -13,8 +13,6 @@ const formatDate = d3.utcFormat("%b. %d, %Y");
 const DumbbellGraphic = () => {
     const portfolio = portfolioA.portfolio;
     const [fullData, setFullData] = useState([])
-
-    // State: stores the two slider thumbs as indices into the date list
     const [rangeIdx, setRangeIdx] = useState([0, 0]);
     const [contributionData, setContributionData] = useState([]);
     const [totalReturn, setTotalReturn] = useState(null);
@@ -23,7 +21,7 @@ const DumbbellGraphic = () => {
     const dates = useMemo(() => {
         const allDates = sampleData.map(d => d.date);
         const unique = Array.from(new Set(allDates));
-        unique.sort();  // assumes date strings are in ISO yyyy‑mm‑dd; lexicographic sort works
+        unique.sort(); 
         return unique;
     }, [sampleData]);
 
@@ -103,7 +101,7 @@ const DumbbellGraphic = () => {
         };
     }
 
-    // Recompute chart whenever the slider range changes (or portfolio, or dates)
+    // Update chart whenever the slider range changes (or portfolio, or dates)
     useEffect(() => {
         if (dates.length === 0) return;
 
@@ -121,15 +119,14 @@ const DumbbellGraphic = () => {
         setFullData(fullContributionData)
 
         const transformedData = fullContributionData.flatMap(stock => {
-
             return [
                 {
                     ticker: stock.ticker,
                     category: "Zero",
                     value: 0,
-                    label: "hide",
+                    label: "",
                     offset: -2,
-                    dataPointAccessibilityNote: `This point represents the 0% benchmark`
+                    dataPointAccessibilityNote: `This point represents 0% contribution`
                 },
                 {
                     ticker: stock.ticker,
@@ -137,7 +134,7 @@ const DumbbellGraphic = () => {
                     label: stock.contributionPct,
                     value: stock.contributionPct,
                     offset: 5,
-                    dataPointAccessibilityNote: `Ticker ${stock.ticker} had a return of ${stock.contributionPct}%`
+                    dataPointAccessibilityNote: `${stock.ticker} contributed ${stock.contributionPct} percentage points to return.`
                 }
             ];
         });

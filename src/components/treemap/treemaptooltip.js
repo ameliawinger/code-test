@@ -29,7 +29,7 @@ const TreemapTooltip = ({ data, totalValue, hierarchy, date, colors }) => {
     };
 
     const parseDate = d3.utcParse("%Y-%m-%d")
-    const formatDate = d3.utcFormat("%B %d, %Y");
+    const formatDate = d3.utcFormat("%b %d, %Y");
 
     ///////////////////////////////////////////////////
 
@@ -48,10 +48,7 @@ const TreemapTooltip = ({ data, totalValue, hierarchy, date, colors }) => {
     }).sort((a, b) => b.value - a.value);
 
 
-
-
-    ///////////////////////////////////////////////////
-
+    // Function to find the closest date if we're looking at a date for which data doesn't exist
     function getClosestEntry(stockHistory, targetDateStr) {
         const targetTime = new Date(targetDateStr).getTime();
 
@@ -72,6 +69,9 @@ const TreemapTooltip = ({ data, totalValue, hierarchy, date, colors }) => {
         return closestEntry;
     }
 
+
+    //Function to find the close price
+    //Period is used to help calculate the 1-year, 3-year and 5-year returns
     function getClosePrice(date, stock, period) {
         const targetDate = new Date(date);
         const pastDate = new Date(targetDate);
@@ -81,7 +81,6 @@ const TreemapTooltip = ({ data, totalValue, hierarchy, date, colors }) => {
         const targetDateStr = formatDate(targetDate);
         const pastDateStr = formatDate(pastDate);
 
-        // Filter historical data for the stock
         const stockHistory = sampleData
             .filter(entry => entry.Name === stock)
             .sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -90,7 +89,6 @@ const TreemapTooltip = ({ data, totalValue, hierarchy, date, colors }) => {
             return null;
         }
 
-        // Find closest entries (before or after) for target and past dates
         const currentData = getClosestEntry(stockHistory, targetDateStr);
         const pastData = getClosestEntry(stockHistory, pastDateStr);
 
@@ -110,90 +108,99 @@ const TreemapTooltip = ({ data, totalValue, hierarchy, date, colors }) => {
     }
 
 
-
-
-
-
-
-
-
-
-
+    //Build the tooltips
     if (!data || Object.keys(data).length === 0) {
         return (
             <div className={styles.tooltipContainer}>
-                <div style={{ backgroundColor: '#CFE0EF', padding: '.5rem', margin: 'auto' }}>
-                    <div style={{ fontWeight: 'bold' }}>Total Portfolio Value: {formatDollar(totalValue)}</div>
-                    <div style={{marginTop:'.25rem', fontSize:'13px', fontStyle:'italic'}}>{formatDate(parseDate(date))}</div>
+                <div className={styles.tooltipHeader}>
+                    <div>{data?.Name || 'Total Portfolio Value: ' + formatDollar(totalValue)}</div>
+                    {!data && <div className={styles.tooltipSubText}>{formatDate(parseDate(date))}</div>}
                 </div>
-                <div style={{ marginTop: '.5rem' }}>
-                <div style={{ padding: '0 .5rem 0 .5rem' }}>As of market close on {formatDate(parseDate(date))}, your portfolio was valued at {formatDollar(totalValue)}.</div>
-            </div>
 
-                <div>
-                    <div style={{ marginTop: '1rem', fontWeight: 'bold' }}>
-                        Sector Allocation:
+                <div className={styles.tooltipDescription}>
+                    As of market close on {formatDate(parseDate(data?.date || date))},
+                    {data ? (
+                        <> {' '}your <b>{data.shares} {data.Name} shares</b> were valued at: <b>{formatDollar(data.value)}</b>.</>
+                    ) : (
+                        <>{' '}your portfolio was valued at {formatDollar(totalValue)}.</>
+                    )}
+                </div>
+
+                {data && (
+                    <div className={styles.weightBadge}>
+                        Weight: {`${((data.value / totalValue) * 100).toFixed(2)}%`} of portfolio
                     </div>
+                )}
 
-                    <div
-                        style={{
-                            margin: '0 auto',
-                            display: 'grid',
-                            gridTemplateColumns: 'auto auto',
-                            columnGap: '0rem',
-                            rowGap: '0rem',
-                            fontSize: '12px',
-                            width: '75%',
-                            border: '1px solid black', // outer border
-                        }}
-                    >
-                        {[
-                            ['Sector', 'Value (% of Portfolio)'],
-                            ...sectorData.map((sector) => {
-                                return [
+                {!data && (
+                    <>
+                        <div className={styles.sectorAllocationLabel}>Sector Allocation:</div>
+                        <div className={styles.sectorGrid}>
+                            {[
+                                ['Sector', 'Value (% of Portfolio)'],
+                                ...sectorData.map((sector) => [
                                     sector.name,
                                     `$${sector.value.toLocaleString()} (${sector.percent}%)`,
-                                ];
-                            }),
-                        ].map(([label, value], idx) => (
-                            <React.Fragment key={idx}>
-                                <div
-                                    style={{
-                                        border: '.5px solid #ccc',
-                                        padding: '0.5rem',
-                                        backgroundColor: idx === 0 ? '#CFE0EF' : '#EFF5FA',
-                                        textAlign: idx === 0 ? 'center' : 'right',
-                                        fontWeight: idx === 0 ? 'bold' : 'normal',
-                                    }}
-                                >
-                                    {label}
-                                </div>
-                                <div
-                                    style={{
-                                        border: '.5px solid #ccc',
-                                        padding: '0.5rem',
-                                        textAlign: idx === 0 ? 'center' : 'right',
-                                        backgroundColor: idx === 0 ? '#CFE0EF' : 'white',
-                                        fontWeight: idx === 0 ? 'bold' : 'normal',
-                                    }}
-                                >
-                                    {value}
-                                </div>
-                            </React.Fragment>
-                        ))}
-                    </div>
+                                ]),
+                            ].map(([label, value], idx) => (
+                                <React.Fragment key={idx}>
+                                    <div className={idx === 0 ? styles.gridHeaderCell : styles.gridDataLabel}>
+                                        {label}
+                                    </div>
+                                    <div className={idx === 0 ? styles.gridHeaderCell : styles.gridDataValue}>
+                                        {value}
+                                    </div>
+                                </React.Fragment>
+                            ))}
+                        </div>
+                    </>
+                )}
 
+                {data && (
+                    <>
+                        <div className={styles.priceSectionLabel}>Daily price fluctuation:</div>
+                        <div className={styles.priceGrid}>
+                            {[
+                                ['Open:', formatDollar(data.open)],
+                                ['Close:', formatDollar(data.close)],
+                                ['High:', formatDollar(data.high)],
+                                ['Low:', formatDollar(data.low)],
+                            ].map(([label, value], idx) => (
+                                <React.Fragment key={idx}>
+                                    <div className={styles.priceGridLabel}>{label}</div>
+                                    <div className={styles.priceGridValue}>{value}</div>
+                                </React.Fragment>
+                            ))}
+                        </div>
 
-
-
-
-
-
-
-
-
-                </div>
+                        <div className={styles.priceSectionLabel}>Return Price</div>
+                        <div className={styles.returnGrid}>
+                            {[
+                                ['1-Year Return:', getClosePrice(data.date, data.name, 1)?.returnPercent || 'N/A'],
+                                ['3-Year Return:', getClosePrice(data.date, data.name, 3)?.returnPercent || 'N/A'],
+                                ['5-Year Return:', getClosePrice(data.date, data.name, 5)?.returnPercent || 'N/A'],
+                            ].map(([label, value], idx) => (
+                                <React.Fragment key={idx}>
+                                    <div className={styles.returnGridLabel}>{label}</div>
+                                    <div className={styles.returnGridValue}>{value}</div>
+                                </React.Fragment>
+                            ))}
+                        </div>
+                    </>
+                )}
             </div>
+
+
+
+
+
+
+
+
+
+
+
+
         );
     }
 
@@ -204,75 +211,84 @@ const TreemapTooltip = ({ data, totalValue, hierarchy, date, colors }) => {
 
     return (
         <div className={styles.tooltipContainer}>
-            <div style={{ backgroundColor: colors?.[data.sector]?.color50, color: colors?.[data.sector]?.textcolor, padding: '.5rem', margin: 'auto' }}>
-                <div style={{ fontWeight: 'bold' }}>{data.Name}</div>
-                <div style={{ fontSize: '14px' }}>Sector: {data.sector}</div>
-
-            </div>
-            <div style={{ marginTop: '.5rem' }}>
-                <div style={{ padding: '0 .5rem 0 .5rem' }}>As of market close on {formatDate(parseDate(data.date))}, your <b>{data.shares} {data.Name} shares</b> were valued at: <b>{formatDollar(data.value)}</b>.</div>
-                <div style={{ margin: '.5rem auto 0 auto', backgroundColor: '#CFE0EF', fontWeight: 'bold', width: 'fit-content', padding: '.5rem', borderRadius: '4px' }}>Weight: {`${((data.value / totalValue) * 100).toFixed(2)}%`} of portfolio</div>
-            </div>
-
-            <div style={{ marginTop: '1rem', fontWeight: 'bold' }}>Daily price fluctuation: </div>
-            <div style={{
-                margin: '0rem auto 0 auto',
-                display: 'grid',
-                gridTemplateColumns: 'auto auto',
-                columnGap: '0rem',
-                rowGap: '0rem',
-                fontSize: '12px',
-                width: '50%',
-                //maxWidth: '300px',
-                border: '1px solid black', // outer border around the whole grid
-            }}>
-                {[
-                    ['Open:', formatDollar(data.open)],
-                    ['Close:', formatDollar(data.close)],
-                    ['High', formatDollar(data.high)],
-                    ['Low:', formatDollar(data.low)]
-                ].map(([label, value], idx) => (
-                    <React.Fragment key={idx}>
-                        <div style={{ border: '.5px solid #ccc', padding: '0.25rem', backgroundColor: '#CFE0EF', textAlign: 'right' }}>{label}</div>
-                        <div style={{ border: '.5px solid #ccc', padding: '0.25rem', backgroundColor: 'white' }}>{value}</div>
-                    </React.Fragment>
-                ))}
-            </div>
-
-            <div style={{ marginTop: '2rem', fontWeight: 'bold' }}>Return Price</div>
             <div
+                className={styles.tooltipHeaderDynamic}
                 style={{
-                    margin: '0 auto 1rem auto',
-                    display: 'grid',
-                    gridTemplateColumns: 'auto auto',
-                    columnGap: '0rem',
-                    rowGap: '0rem',
-                    fontSize: '12px',
-                    width: '50%',
-                    //maxWidth: '300px',
-                    border: '1px solid black', // outer border around the whole grid
+                    backgroundColor: colors?.[data.sector]?.color50,
+                    color: colors?.[data.sector]?.textcolor,
                 }}
             >
+                <div className={styles.tooltipTitle}>{data.Name}</div>
+                <div className={styles.tooltipSector}>Sector: {data.sector}</div>
+            </div>
+
+            <div className={styles.tooltipDescription}>
+                As of market close on {formatDate(parseDate(data.date))}, your{" "}
+                <b>
+                    {data.shares} {data.Name} shares
+                </b>{" "}
+                were valued at: <b>{formatDollar(data.value)}</b>.
+            </div>
+
+            <div className={styles.weightBadge}>
+                Weight: {`${((data.value / totalValue) * 100).toFixed(2)}%`} of portfolio
+            </div>
+
+            <div className={styles.sectionLabel}>Daily price fluctuation:</div>
+            <div className={styles.priceGrid}>
                 {[
-                    ['1-Year Return:', getClosePrice(data.date, data.name, 1)?.returnPercent || 'N/A'],
-                    ['3-Year Return:', getClosePrice(data.date, data.name, 3)?.returnPercent || 'N/A'],
-                    ['5-Year Return:', getClosePrice(data.date, data.name, 5)?.returnPercent || 'N/A'],
+                    ["Open:", formatDollar(data.open)],
+                    ["Close:", formatDollar(data.close)],
+                    ["High:", formatDollar(data.high)],
+                    ["Low:", formatDollar(data.low)],
                 ].map(([label, value], idx) => (
                     <React.Fragment key={idx}>
-                        <div style={{ border: '1px solid #ccc', padding: '0.25rem', backgroundColor: '#CFE0EF', textAlign: 'right' }}>{label}</div>
-                        <div style={{ border: '1px solid #ccc', padding: '0.25rem', backgroundColor: 'white' }}>{value}</div>
+                        <div className={styles.gridLabelCell}>{label}</div>
+                        <div className={styles.gridValueCell}>{value}</div>
                     </React.Fragment>
                 ))}
             </div>
 
-
-
-
-
-
-
+            <div className={styles.sectionLabel}>Return:</div>
+            <div className={styles.returnGrid}>
+                {[
+                    [
+                        "1-Year Return:",
+                        getClosePrice(data.date, data.name, 1)?.returnPercent || "N/A",
+                    ],
+                    [
+                        "3-Year Return:",
+                        getClosePrice(data.date, data.name, 3)?.returnPercent || "N/A",
+                    ],
+                    [
+                        "5-Year Return:",
+                        getClosePrice(data.date, data.name, 5)?.returnPercent || "N/A",
+                    ],
+                ].map(([label, value], idx) => (
+                    <React.Fragment key={idx}>
+                        <div className={styles.gridLabelCell}>{label}</div>
+                        <div className={styles.gridValueCell}>{value}</div>
+                    </React.Fragment>
+                ))}
+            </div>
         </div>
     );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 };
 
 export default TreemapTooltip

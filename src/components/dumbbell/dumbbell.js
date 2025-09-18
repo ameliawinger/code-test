@@ -3,12 +3,10 @@ import { DumbbellPlot } from "@visa/charts-react";
 import styles from './dumbbell.module.css';
 import * as d3 from "d3";
 
-
 const parseDate = d3.utcParse("%Y-%m-%d")
 const formatDate = d3.utcFormat("%b. %d, %Y");
 
 const Dumbbell = ({ data, rangeIdx, dates, totalReturn }) => {
-
     const generateAnnotations = (sortedData) => {
         const ctrData = sortedData.filter(d => d.category === "CtR");
 
@@ -46,10 +44,7 @@ const Dumbbell = ({ data, rangeIdx, dates, totalReturn }) => {
     };
 
     const sortedData = [...data].sort((a, b) => b.value - a.value);
-    //const annotations = generateAnnotations(sortedData);
-
     const [annotations, setAnnotations] = useState(generateAnnotations(sortedData));
-
 
     useEffect(() => {
         if (data && data.length > 0) {
@@ -59,15 +54,12 @@ const Dumbbell = ({ data, rangeIdx, dates, totalReturn }) => {
         }
     }, [data]);
 
-
-
-
     // Prepare dumbbell config
     const dumbbellConfig = {
         uniqueID: "dumbbell-plot",
         mainTitle: "Performance Analysis",
         subTitle: {
-            text: `Your portfolio saw a ${(totalReturn * 100).toFixed(2)}% return from ${formatDate(parseDate(dates[rangeIdx[0]]))} to ${formatDate(parseDate(dates[rangeIdx[1]]))}. Explore how each holding contributed to your portfolio's overall return, and use the sliding scale to adjust the time period shown. The percentages shown represent each holding’s contribution to total return, not their portfolio weights, and therefore may not sum to 100%.`
+            text: `Your portfolio returned ${(totalReturn * 100).toFixed(2)}% from ${formatDate(parseDate(dates[rangeIdx[0]]))} to ${formatDate(parseDate(dates[rangeIdx[1]]))}. Use the sliding scale below to adjust the time period and explore how each holding contributed to your overall return. Each bar represents the percentage points contributed by a stock, not its portfolio weight, and therefore may not sum to 100%.`
         },
         accessibility: {
             title: "Performance Analysis",

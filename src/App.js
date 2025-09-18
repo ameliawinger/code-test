@@ -25,7 +25,7 @@ function App() {
           <TreemapGraphic portfolio={"portfolioA"} />
         </div>
         <div>
-          <DumbbellGraphic portfolio={"portfolioC"} />
+          <DumbbellGraphic />
         </div>
         
       </div>

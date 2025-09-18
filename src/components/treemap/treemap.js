@@ -123,7 +123,6 @@ const Treemap = ({ h_max, hierarchy, setTooltipData, colors }) => {
           const colorObj = colors[sector];
 
           if (!colorObj) {
-            console.warn("Missing color for sector:", sector);
             return "#ccc"; // fallback
           }
 
