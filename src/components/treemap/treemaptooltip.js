@@ -1,19 +1,9 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import * as d3 from "d3";
-
 import styles from './treemap.module.css'
 import sampleData from "../../sample-data/sample-sp.json";
-//import * as ChartStyles from '../../styles/project-modules/voronoi.module.less'
-//import Tooltip from './voronoiTooltip'
-//import Legend from './legend'
-
-
-
 
 const TreemapTooltip = ({ data, totalValue, hierarchy, date, colors }) => {
-
-
-
 
     const formatDollar = (value) => {
         const num = value;
@@ -31,9 +21,6 @@ const TreemapTooltip = ({ data, totalValue, hierarchy, date, colors }) => {
     const parseDate = d3.utcParse("%Y-%m-%d")
     const formatDate = d3.utcFormat("%b %d, %Y");
 
-    ///////////////////////////////////////////////////
-
-
     // Extract sector-level data from hierarchy
     const sectorData = hierarchy.children.map((sectorNode) => {
         const sectorName = sectorNode.data.name;
@@ -46,7 +33,6 @@ const TreemapTooltip = ({ data, totalValue, hierarchy, date, colors }) => {
             percent,
         };
     }).sort((a, b) => b.value - a.value);
-
 
     // Function to find the closest date if we're looking at a date for which data doesn't exist
     function getClosestEntry(stockHistory, targetDateStr) {
@@ -70,8 +56,8 @@ const TreemapTooltip = ({ data, totalValue, hierarchy, date, colors }) => {
     }
 
 
-    //Function to find the close price
-    //Period is used to help calculate the 1-year, 3-year and 5-year returns
+    // Function to find the close price
+    // Period is used to help calculate the 1-year, 3-year and 5-year returns
     function getClosePrice(date, stock, period) {
         const targetDate = new Date(date);
         const pastDate = new Date(targetDate);
@@ -108,7 +94,7 @@ const TreemapTooltip = ({ data, totalValue, hierarchy, date, colors }) => {
     }
 
 
-    //Build the tooltips
+    // Build the tooltips
     if (!data || Object.keys(data).length === 0) {
         return (
             <div className={styles.tooltipContainer}>
@@ -189,24 +175,8 @@ const TreemapTooltip = ({ data, totalValue, hierarchy, date, colors }) => {
                     </>
                 )}
             </div>
-
-
-
-
-
-
-
-
-
-
-
-
         );
     }
-
-
-
-
 
 
     return (
@@ -273,22 +243,6 @@ const TreemapTooltip = ({ data, totalValue, hierarchy, date, colors }) => {
             </div>
         </div>
     );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 };
 
 export default TreemapTooltip

@@ -3,9 +3,6 @@ import seedrandom from "seedrandom";
 import * as d3 from "d3";
 import * as d3Voronoi from "d3-voronoi-treemap";
 import styles from './treemap.module.css'
-//import * as ChartStyles from '../../styles/project-modules/voronoi.module.less'
-//import Tooltip from './voronoiTooltip'
-//import Legend from './legend'
 
 
 // Helper functions
@@ -180,8 +177,6 @@ const Treemap = ({ h_max, hierarchy, setTooltipData, colors }) => {
           .classed(styles.hide, true)
           .classed(styles.highlight, false)
       })
-
-
   }
 
   // use effect since the chart depends on the svg dimensions
