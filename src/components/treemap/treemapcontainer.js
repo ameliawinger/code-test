@@ -101,8 +101,8 @@ const TreemapGraphic = ({ portfolio }) => {
         id: idCounter++,
         name: stock.Name,
         value: stock.value,
-        sector: stock.sector, // important
-        ...stock, // include everything else
+        sector: stock.sector,
+        ...stock, 
       })),
     }));
 
@@ -126,8 +126,8 @@ const TreemapGraphic = ({ portfolio }) => {
     const leafNodes = hierarchy.leaves?.() || [];
     const uniqueSectors = [...new Set(leafNodes.map((d) => d.data.sector))];
 
-    const minColor = "#CFE0EF"; // light blue
-    const maxColor = "#003166"; // dark teal
+    const minColor = "#CFE0EF"; 
+    const maxColor = "#003166"; 
 
     const interpolator = d3.interpolateLab(minColor, maxColor);
     const n = uniqueSectors.length;
@@ -135,7 +135,7 @@ const TreemapGraphic = ({ portfolio }) => {
     return Object.fromEntries(
       uniqueSectors.map((sector, i) => {
         const color50 = interpolator(i / (n - 1));
-        const lightness = d3.lab(color50).l; // Lightness is between 0 and 100
+        const lightness = d3.lab(color50).l; 
 
         const textcolor = lightness < 60 ? 'white' : 'black'; // tweak threshold if needed
 
@@ -151,9 +151,7 @@ const TreemapGraphic = ({ portfolio }) => {
   return (
     <div style={{ marginBottom: '6rem', border: '1px solid black', width: '95%', margin: '1rem auto 6rem auto ', padding: '1rem' }}>
       <h2>Portfolio Composition</h2>
-      <div style={{ margin: '0 auto 1rem auto', width: '90%' }}>Use the treemap below to explore the value of each holding in your portfolio, grouped by sector.
-        Each shape represents a single holding, sized by its value as of market close.
-        Hover over a holding for more details.</div>
+      <div style={{ margin: '0 auto 1rem auto', width: '90%' }}>Use the treemap below to explore the value of each holding in your portfolio, grouped by sector. Each shape represents a single holding, sized by its value as of market close. Hover over a holding for more details.</div>
 
       <div className={styles.graphicWrapper}>
         <div className={styles.treemapContainer}>
